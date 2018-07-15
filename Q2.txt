@@ -1,0 +1,28 @@
+@searchlog =
+    EXTRACT Tcs int,
+            Main string, 
+            MidblockRoute string, 
+            Side1Route string, 
+            Side2Route String,
+            ActivationDate DateTime,
+            Latitude float,
+            Longitude float,
+            CountDate DateTime,
+            PeakHrVehicleVolume int,
+            PeakHrPedestrianVolume int
+    FROM "/Data/dataset.tsv"
+    USING Extractors.Tsv(encoding: Encoding.[UTF8],skipFirstNRows:1);
+
+@q=
+    SELECT 
+            Latitude,
+            Longitude,
+            SUM(PeakHrVehicleVolume+PeakHrPedestrianVolume) AS PeakHr
+    FROM @searchlog 
+    WHERE (CountDate >= DateTime.Parse("2013-01-01")) AND (CountDate <= DateTime.Parse("2018-01-01")) 
+    GROUP BY Latitude,Longitude
+    ORDER BY PeakHr DESC FETCH FIRST 10 ROWS;
+
+OUTPUT @q
+    TO "/output/q2.csv"
+    USING Outputters.Csv();
